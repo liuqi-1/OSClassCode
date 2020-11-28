@@ -59,7 +59,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>WSL_1_0</PlatformToolset>
+    <PlatformToolset>Remote_GCC_1_0</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -77,6 +77,12 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="end.txt" />
+    <Text Include="res.txt" />
+    <Text Include="start.txt" />
+    <Text Include="wrong.txt" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
