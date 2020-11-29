@@ -7,7 +7,7 @@ int main() {
 	pid_t p = fork();
 	if (p == 0) {
 		//вс╫ЬЁл
-		printf("the son process is excuting the assigment from the father process!\n");
+		printf("the son process is excuting the new assigment !\n");
 		sleep(5);
 		printf("the son process is dead!");
 		exit(0);
