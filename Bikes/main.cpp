@@ -74,18 +74,14 @@ void* usingCars(void* args) {
 		usleep(dangerTime * 100000);
 		printf("我是%ld，在从%s到%s过程中，距离%s%.2f车程的地方，车出现故障……\n",
 			pthread_self(), from_name, to_name, from_name, (float)dangerTime / 10);
-
 		//打开错误信息表
 		int fp2;
 		fp2 = open("./wrong.txt", O_WRONLY | O_APPEND);
-
 		//给文件上锁
 		flock(fp2, LOCK_EX);
-
 		//将目的地写进错误信息表
 		const char* endEn = stationsEn[to];
 		write(fp2, endEn, 10);
-
 		//解锁文件并且关闭
 		flock(fp2, LOCK_UN);
 		close(fp2);
@@ -95,15 +91,12 @@ void* usingCars(void* args) {
 	//骑车过程
 	usleep(usingTime * 100000);
 
-
 	//还车
 	pthread_mutex_lock(&lock);
 	sem_post(&sems[to]);
 	leftBikes[to] ++;
 	pthread_mutex_unlock(&lock);
-
 	printf("我是%ld，到达%s，还车后该地还剩下%d辆车……\n", pthread_self(), to_name, leftBikes[to]);
-
 
 	//文件部分,记录到达信息
 	FILE* fp3;
@@ -123,8 +116,10 @@ void* manageCars(void* args) {
 	while (true) {
 		//等待10s
 		sleep(10);
+
 		//锁定信号量
 		pthread_mutex_lock(&lock);
+
 		//计算平均值和余数
 		int sum = 0;
 		for (int i = 0; i < 4; i++)
@@ -149,6 +144,7 @@ void* manageCars(void* args) {
 			flag = (flag + 1) % 4;
 		}
 
+		//打印车辆调整信息
 		printf("我是管理员，现在车辆调整：\n");
 		printf("雁北园：%d辆，", leftBikes[0]);
 		printf("雁南园，%d辆，", leftBikes[1]);
@@ -199,7 +195,8 @@ void* repairCars(void* args) {
 		int fp = open("./wrong.txt", O_RDWR);
 		if (fp == -1) //判断文件是否存在及可读
 		{
-			printf("error!");
+			printf("打开错误信息表出错!");
+			pthread_exit(NULL);
 		}
 
 		//给文件上锁
@@ -248,7 +245,8 @@ void* repairCars(void* args) {
 	}
 }
 
-int main() {
+//初始化模块，初始化信号量，互斥锁以及系统线程
+void init() {
 	//初始化各站点车辆数据(从文件读取)
 	FILE* fp = fopen("./init.txt", "r");
 	int data[4];
@@ -256,9 +254,8 @@ int main() {
 		printf("文件打开错误，即将退出程序……\n");
 		exit(-1);
 	}
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++) 
 		fscanf(fp, "%d", &data[i]);
-	}
 	fclose(fp);
 
 	//初始化信号量
@@ -271,18 +268,61 @@ int main() {
 	pthread_mutex_init(&lock, NULL);
 
 	//初始化管理员线程
-	pthread_t admin;
-	pthread_create(&admin, NULL, manageCars, NULL);
+	int c = 0;
+	printf("是否启动管理员模式？\n1.是\t2.否\n");
+	scanf("%d", &c);
+	char usename[20] = "admin";//管理员用户名
+	char key[20] = "1111";//管理员密码
+	if (c == 1) {
+		char temp1[20];
+		char temp2[20];
+		printf("请输入用户名\n");
+		scanf("%s", temp1);
+		printf("请输入密码\n");
+		scanf("%s", temp2);
+		if (strcmp(usename, temp1) == 0 && strcmp(key, temp2) == 0) 
+			printf("启动管理员线程成功\n\n");
+		else 
+			printf("用户名或密码错误，启动管理员线程失败\n\n");
+	}
 
-	//初始化实时更新线程
+	//初始化修理员线程
+	int c1 = 0;
+	printf("是否启动修理员模式？\n1. 是\t2.否\n");
+	scanf("%d", &c1);
+	char repairManName[20] = "repairman";//修理员用户名
+	char password[20] = "1111";//修理员密码
+	if (c1 == 1) {
+		char temp1[20];
+		char temp2[20];
+		printf("请输入用户名\n");
+		scanf("%s", temp1);
+		printf("请输入密码\n");
+		scanf("%s", temp2);
+		if (strcmp(repairManName, temp1) == 0 && strcmp(password, temp2) == 0)
+			printf("启动修理员线程成功\n\n");
+		else 
+			printf("用户名或密码错误，启动修理员线程失败\n\n");
+	}
+
+	//创建系统线程
 	pthread_t realtime;
 	pthread_create(&realtime, NULL, realTime, NULL);
+	if (c == 1) {
+		pthread_t admin;
+		pthread_create(&admin, NULL, manageCars, NULL);
+	}
+	if (c1 == 1) {
+		pthread_t repair;
+		pthread_create(&repair, NULL, &repairCars, NULL);
+	}
+}
 
-	//修理
-	pthread_t repair;
-	pthread_create(&repair, NULL, repairCars, NULL);
+int main() {
+	//调用初始化模块
+	init();
 
-	//开始模拟
+	//循环创建用户线程
 	srand(time(NULL));
 	while (true) {
 		pthread_t user;
@@ -292,3 +332,4 @@ int main() {
 	}
 	return 0;
 }
+
