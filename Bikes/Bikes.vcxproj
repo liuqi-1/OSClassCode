@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="end.txt" />
+    <Text Include="init.txt" />
     <Text Include="res.txt" />
     <Text Include="start.txt" />
     <Text Include="wrong.txt" />
